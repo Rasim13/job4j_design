@@ -2,7 +2,6 @@ package ru.job4j.generics;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public final class MemStore<T extends Base> implements Store<T> {
 
@@ -17,31 +16,32 @@ public final class MemStore<T extends Base> implements Store<T> {
 
     @Override
     public boolean replace(String id, T model) {
-        T find = findById(id);
-        if (find == null) {
-            return false;
+        int ids = findId(id);
+        if (ids != -1) {
+            mem.set(ids, model);
+            return true;
         }
-        mem.set(indexOf(find), model);
-        return true;
+        return false;
     }
 
     @Override
     public boolean delete(String id) {
-        T find = findById(id);
-        int index = indexOf(find);
-        if (index == -1) {
-            return false;
+        int ids = findId(id);
+        if (ids != -1) {
+            mem.remove(ids);
+            return true;
         }
-        mem.remove(index);
-        return true;
+        return false;
     }
 
     @Override
     public T findById(String id) {
-        return mem.stream()
-                .filter(s -> Objects.equals(s.getId(), id))
-                .findFirst()
-                .orElse(null);
+        T rsl = null;
+        int ids = findId(id);
+        if (ids != -1) {
+            rsl = mem.get(ids);
+        }
+            return rsl;
     }
 
     @Override
@@ -49,7 +49,14 @@ public final class MemStore<T extends Base> implements Store<T> {
         return mem.size();
     }
 
-    private int indexOf(T byId) {
-        return mem.indexOf(byId);
+    private int findId(String id) {
+        int rsl = -1;
+        for (int i = 0; i < mem.size(); i++) {
+            if (mem.get(i).getId().equals(id)) {
+                rsl = i;
+                break;
+            }
+        }
+        return rsl;
     }
 }
